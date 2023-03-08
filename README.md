@@ -5,7 +5,7 @@
 [![PkgEval](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/R/ReviseTests.svg)](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/report.html)
 
 The package implements a helper function `ReviseTests.track`.
-This function accepts a vector of files that must be re-executed if `Revise` detects an update in any code in modules provided in `modules`.
+This function accepts a vector of files that must be re-executed if `Revise` detects an update in any code in modules provided in `modules` or in the files themselves.
 Re-execution happens with a simple `include()` call. 
 
 - entries: a vector (or any iterable really) of files that need re-execution on code update
@@ -17,6 +17,9 @@ A single entry can be:
 
 Uses `pathof` to get the path to a module.
 Internally uses `Revise.entr`, `kwargs...` are the same as in the `Revise.entr`.
+
+If an error occurs in one of the files the function picks up the first `TestSetException` error and displays a very limited 
+version of the stacktrace.
 
 Ctrl-C stops tracking and exits the function.
 
@@ -43,3 +46,5 @@ julia> using MyPackage
 
 julia> ReviseTests.track(MyPackage, [ "path/to/my/file" ])
 ```
+
+The package itself has been tested with `ReviseTests`. Open an issue if I missed something!

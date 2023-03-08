@@ -1,13 +1,14 @@
 module ReviseTests
 
 using Revise
+using Test
 
 import Revise: entr
 
 """
     track(modules, entries = [ r".*" ]; kwars...)
 
-This function accepts a vector of files that must be re-executed if `Revise` detects an update in any code in modules provided in `modules`.
+This function accepts a vector of files that must be re-executed if `Revise` detects an update in any code in modules provided in `modules` or in the files themselves.
 Re-execution happens with a simple `include()` call. 
 
 - entries: a vector (or any iterable really) of files that need re-execution on code update
@@ -19,6 +20,9 @@ A single entry can be:
 
 Uses `pathof` to get the path to a module.
 Internally uses `Revise.entr`, `kwargs...` are the same as in the `Revise.entr`.
+
+If an error occurs in one of the files the function picks up the first `TestSetException` error and displays a very limited 
+version of the stacktrace.
 
 Ctrl-C stops tracking and exits the function.
 """
@@ -33,8 +37,8 @@ function track(modules, entries = [ r".*" ]; kwargs...)
         @info "Added the $file in the exection list"
     end
 
-    Revise.entr([], modules; kwargs...) do 
-        include_files(files)
+    Revise.entr(files, modules; kwargs...) do 
+        ReviseTests.include_files(files)
     end
 
     @info "Stopping re-execution..."
@@ -89,14 +93,21 @@ end
 
 # `include`s files and returns a vector of errors (if any)
 function include_files(files)
+    errors = []
     for file in files 
         try 
             @info "Running file $file..."
-            @eval Module() begin 
-                Base.include(@__MODULE__, $file)
-            end
+            @eval Module() Base.include(@__MODULE__, $file)
         catch error 
             @error error
+            push!(errors, error)
+        end
+    end
+    if !isempty(errors)
+        index = findfirst(((e, b), ) -> e isa LoadError && e.error isa TestSetException, errors)
+        if !isnothing(index)
+            error = errors[index]
+            show(stdout, first(error.error.errors_and_fails))
         end
     end
     return nothing
