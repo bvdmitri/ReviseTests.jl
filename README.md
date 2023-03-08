@@ -5,7 +5,12 @@
 [![PkgEval](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/R/ReviseTests.svg)](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/report.html)
 
 The package implements a helper function `ReviseTests.track`.
-This function accepts a vector of files that must be re-executed if `Revise` detects an update in any code in modules provided in `modules` or in the files themselves.
+
+```
+    track(modules, entries = [ r".*" ]; kwars...)
+```
+
+This function accepts a vector of entries (files) that must be re-executed if `Revise` detects an update in any code in modules provided in `modules` or in the files themselves.
 Re-execution happens with a simple `include()` call. 
 
 - entries: a vector (or any iterable really) of files that need re-execution on code update
