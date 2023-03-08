@@ -92,7 +92,9 @@ function include_files(files)
     for file in files 
         try 
             @info "Running file $file..."
-            include(file)
+            @eval Module() begin 
+                Base.include(@__MODULE__, $file)
+            end
         catch error 
             @error error
         end
