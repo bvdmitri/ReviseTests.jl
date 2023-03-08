@@ -3,3 +3,43 @@
 [![Build Status](https://github.com/bvdmitri/ReviseTests.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/bvdmitri/ReviseTests.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/bvdmitri/ReviseTests.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/bvdmitri/ReviseTests.jl)
 [![PkgEval](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/R/ReviseTests.svg)](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/report.html)
+
+The package implements a helper function `ReviseTests.track`.
+This function accepts a vector of files that must be re-executed if `Revise` detects an update in any code in modules provided in `modules`.
+Re-execution happens with a simple `include()` call. 
+
+- entries: a vector (or any iterable really) of files that need re-execution on code update
+
+A single entry can be:
+- a full path to the file, in which case no further modification is made to the entry (uses `isfile`)
+- a string, which is not a path. In this case the function tries to find all tests in the `test/` folder that include the provided string in its path (uses `occursin`).
+- a regexp, same as the previous one, but uses the regexp instead of a simple string.
+
+Uses `pathof` to get the path to a module.
+Internally uses `Revise.entr`, `kwargs...` are the same as in the `Revise.entr`.
+
+Ctrl-C stops tracking and exits the function.
+
+### Typical use-cases
+
+```julia
+julia> using ReviseTests
+
+julia> using MyPackage
+
+julia> ReviseTests.track(MyPackage)
+```
+or
+```julia
+julia> ReviseTests.track(MyPackage, [ "specific_test" ])
+```
+
+The package is aimed to re-run tests, but can also re-run arbitrary files, e.g.
+
+```julia
+julia> using ReviseTests
+
+julia> using MyPackage
+
+julia> ReviseTests.track(MyPackage, [ "path/to/my/file" ])
+```

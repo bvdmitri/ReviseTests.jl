@@ -5,7 +5,7 @@ using Revise
 import Revise: entr
 
 """
-    track(modules, entries; kwars...)
+    track(modules, entries = [ r".*" ]; kwars...)
 
 This function accepts a vector of files that must be re-executed if `Revise` detects an update in any code in modules provided in `modules`.
 Re-execution happens with a simple `include()` call. 
@@ -24,9 +24,9 @@ Ctrl-C stops tracking and exits the function.
 """
 function track end
 
-track(mod::Module, entries) = track([ mod ], entries)
+track(mod::Module, entries = [ r".*" ]) = track([ mod ], entries)
 
-function track(modules, entries; kwargs...)
+function track(modules, entries = [ r".*" ]; kwargs...)
     files = preprocess_entries(modules, entries)
 
     for file in files 
@@ -91,6 +91,7 @@ end
 function include_files(files)
     for file in files 
         try 
+            @info "Running file $file..."
             include(file)
         catch error 
             @error error
