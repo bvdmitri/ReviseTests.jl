@@ -18,8 +18,10 @@ using Logging
         @test preprocess_entries([ReviseTests], ["file1"]) == [dummyfile1]
         @test preprocess_entries([ReviseTests], ["runtests"]) == [thisfile]
         @test preprocess_entries([ReviseTests], ["runtests", "runtests"]) == [thisfile]
-        @test preprocess_entries([ReviseTests], [r"run.*sts"]) == [thisfile]
-        @test preprocess_entries([ReviseTests], [r"run.*sts", "runtests"]) == [thisfile]
+        @test preprocess_entries([ReviseTests], [r".*runtests.*"]) == [thisfile]
+        @test preprocess_entries([ReviseTests], [r".*runtests.*", "runtests"]) == [thisfile]
+        :wa
+        :qa
 
     end
 
