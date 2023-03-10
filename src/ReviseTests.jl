@@ -104,7 +104,7 @@ function include_files(files)
         end
     end
     if !isempty(errors)
-        index = findfirst(((e, b), ) -> e isa LoadError && e.error isa TestSetException, errors)
+        index = findfirst((e) -> e isa LoadError && e.error isa TestSetException, errors)
         if !isnothing(index)
             error = errors[index]
             show(stdout, first(error.error.errors_and_fails))
