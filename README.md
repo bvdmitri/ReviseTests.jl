@@ -56,13 +56,13 @@ julia> ReviseTests.track(MyPackage, [ "path/to/my/file" ])
 For convenience the package provides the `@track` macro, that tries to figure out the current package in development automatically, e.g
 calling 
 
-```
+```julia
 julia> @track "path/to/myfile"
 ```
 
 within `MyPackage` will be automatically transformed to
 
-```
+```julia
 julia> ReviseTests.track(MyPackage, [ "path/to/my/file" ])
 ```
 
