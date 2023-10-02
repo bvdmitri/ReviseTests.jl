@@ -79,8 +79,8 @@ macro track(entries...)
         if endswith(pathelement, ".jl")
             if isnothing(candidate)
                 candidate = pathelement
-            else
-                error("Two possible projects $(candidate) and $(pathelement). Cannot automatically decide which one to pick. Use `ReviseTests.track` instead.")
+            elseif !isequal(candidate, pathelement)
+                error("Two possible distinct projects $(candidate) and $(pathelement). Cannot automatically decide which one to pick. Use `ReviseTests.track` instead.")
             end
         end
     end

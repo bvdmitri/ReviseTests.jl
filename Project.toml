@@ -1,7 +1,7 @@
 name = "ReviseTests"
 uuid = "a8315d63-8160-44e4-a573-aa779bc83c34"
 authors = ["Bagaev Dmitry <bvdmitri@gmail.com> and contributors"]
-version = "1.1.0"
+version = "1.1.1"
 
 [deps]
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
