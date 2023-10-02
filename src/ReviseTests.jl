@@ -1,17 +1,21 @@
 module ReviseTests
 
+export track, @track
+
 using Revise
 using Test
 
 import Revise: entr
+import TestEnv
 
 """
-    track(modules, entries = [ r".*" ]; kwars...)
+    track(modules, entries = [ r".*" ], use_test_env = true; kwars...)
 
 This function accepts a vector of files that must be re-executed if `Revise` detects an update in any code in modules provided in `modules` or in the files themselves.
 Re-execution happens with a simple `include()` call. 
 
 - entries: a vector (or any iterable really) of files that need re-execution on code update
+- use_test_env: (optional), if `true` calls `TestEnv.activate()` before start tracking
 
 A single entry can be:
 - a full path to the file, in which case no further modification is made to the entry (uses `isfile`)
@@ -28,22 +32,72 @@ Ctrl-C stops tracking and exits the function.
 """
 function track end
 
-track(mod::Module, entries = [ r".*" ]) = track([ mod ], entries)
+track(mod::Module, entries = [ r".*" ], use_test_env = true) = track([ mod ], entries, use_test_env)
 
-function track(modules, entries = [ r".*" ]; kwargs...)
-    files = preprocess_entries(modules, entries)
+function track(modules, entries = [ r".*" ], use_test_env = true; kwargs...)
 
-    for file in files 
-        @info "Added the $file in the exection list"
+    callback = () -> begin
+        files = preprocess_entries(modules, entries)
+
+        for file in files 
+            @info "Added the $file in the exection list"
+        end
+
+        if isempty(files)
+            @warn "The execution list is empty"
+            return nothing
+        end
+
+        Revise.entr(files, modules; kwargs...) do 
+            ReviseTests.include_files(files)
+        end
+
+        @info "Stopping re-execution..."
     end
 
-    Revise.entr(files, modules; kwargs...) do 
-        ReviseTests.include_files(files)
+    if use_test_env
+        TestEnv.activate(callback)
+    else 
+        callback()
     end
-
-    @info "Stopping re-execution..."
 
     return nothing
+end
+
+"""
+    @track "file1" "file2" ...
+
+A convenient macro for executing `ReviseTests.track` for the current project in development. 
+Extracts the project's name from calling `pwd()`. If called without providing files, tracks `runtests.jl`
+Assumes that the current active project's folder ends with `.jl`.
+"""
+macro track(entries...)
+    # Figure out the current directory
+    directory = pwd()
+    candidate = nothing
+    for pathelement in splitpath(directory)
+        if endswith(pathelement, ".jl")
+            if isnothing(candidate)
+                candidate = pathelement
+            else
+                error("Two possible projects $(candidate) and $(pathelement). Cannot automatically decide which one to pick. Use `ReviseTests.track` instead.")
+            end
+        end
+    end
+    if isnothing(candidate)
+        error("Cannot automatically decide which Package to test. Use `ReviseTests.track` instead.")
+    end
+    project = Symbol(replace(candidate, ".jl" => ""))
+    output = quote
+        import Pkg
+        Pkg.activate($directory)
+        import $project
+        ReviseTests.track($project, [ $(entries...) ])
+    end
+    return esc(output)
+end
+macro track()
+    return esc(:(ReviseTests.@track "runtests.jl"))
 end
 
 # Returns a list of full paths to files that should be re-executed
@@ -55,6 +109,7 @@ function preprocess_entries(modules, entries)
     end
     return files
 end
+preprocess_entries(modules, entry::String) = preprocess_entries(modules, [ entry ])
 
 # 'Safe' alternative to the `isfile` that accepts `Regex` as its input. Returns false for `Regex`.
 r_isfile(path::String) = isfile(path)

@@ -7,13 +7,14 @@
 The package implements a helper function `ReviseTests.track`.
 
 ```
-    track(modules, entries = [ r".*" ]; kwars...)
+    track(modules, entries = [ r".*" ], use_test_env = true; kwars...)
 ```
 
 This function accepts a vector of entries (files) that must be re-executed if `Revise` detects an update in any code in modules provided in `modules` or in the files themselves.
 Re-execution happens with a simple `include()` call. 
 
 - entries: a vector (or any iterable really) of files that need re-execution on code update
+- use_test_env: (optional), if `true` calls `TestEnv.activate()` before start tracking
 
 A single entry can be:
 - a full path to the file, in which case no further modification is made to the entry (uses `isfile`)
@@ -51,5 +52,20 @@ julia> using MyPackage
 
 julia> ReviseTests.track(MyPackage, [ "path/to/my/file" ])
 ```
+
+For convenience the package provides the `@track` macro, that tries to figure out the current package in development automatically, e.g
+calling 
+
+```
+julia> @track "path/to/myfile"
+```
+
+within `MyPackage` will be automatically transformed to
+
+```
+julia> ReviseTests.track(MyPackage, [ "path/to/my/file" ])
+```
+
+For the `@track` macro to work properly the package's folder must contain `.jl` in it, e.g `MyPackage.jl`.
 
 The package itself has been tested with `ReviseTests`. Open an issue if I missed something!
