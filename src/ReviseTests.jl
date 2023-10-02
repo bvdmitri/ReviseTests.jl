@@ -92,6 +92,7 @@ macro track(entries...)
         import Pkg
         Pkg.activate($directory)
         import $project
+        import ReviseTests
         ReviseTests.track($project, [ $(entries...) ])
     end
     return esc(output)

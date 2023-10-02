@@ -42,12 +42,12 @@ using Logging
     @testset "@track" begin 
         basicusasge = string(@macroexpand @track)
         @test contains(basicusasge, "runtests.jl")
-        @test contains(basicusasge, "using ReviseTests")
+        @test contains(basicusasge, "import ReviseTests")
         @test contains(basicusasge, "ReviseTests.track(ReviseTests, [\"runtests.jl\"]")
 
         filesusasge = string(@macroexpand @track("asd1", "asd2"))
         @test !contains(filesusasge, "runtests.jl")
-        @test contains(filesusasge, "using ReviseTests")
+        @test contains(filesusasge, "import ReviseTests")
         @test contains(filesusasge, "ReviseTests.track(ReviseTests, [")
         @test contains(filesusasge, "asd1")
         @test contains(filesusasge, "asd2")
